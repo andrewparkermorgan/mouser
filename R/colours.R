@@ -178,10 +178,6 @@ scale_colour_cc <- function(...) scale_color_cc(...)
 
 #' @export
 #' @rdname palettes
-scale_fill_cc <- function(...) scale_fill_cc(...)
-
-#' @export
-#' @rdname palettes
 scale_colour_mus <- function(...) scale_color_mus(...)
 
 #' @export
