@@ -71,7 +71,7 @@ cc_strains <- function(misspell = FALSE, ...) {
 #' @export
 #' @rdname cc_strains
 CC_STRAINS <- function(...) {
-	return( cc_strains(), LETTERS[1:8] )
+	return( setNames( cc_strains(), LETTERS[1:8] ) )
 }
 
 #' Canonical colour scheme for the founder strains of the Collaborative Cross and Diversity Outbred

@@ -19,7 +19,7 @@ scale_color_cc(..., misspell = FALSE)
 
 scale_color_CC(...)
 
-scale_fill_cc(...)
+scale_fill_cc(..., misspell = FALSE)
 
 scale_fill_CC(...)
 
@@ -32,8 +32,6 @@ scale_color_sex(...)
 scale_fill_sex(...)
 
 scale_colour_cc(...)
-
-scale_fill_cc(...)
 
 scale_colour_mus(...)
 

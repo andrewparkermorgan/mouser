@@ -97,3 +97,28 @@ chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38"), as.
 	
 }
 
+
+#' Return position of pseudoautosomal boundary on X chromosome
+#' @param build genome build: see \code{?chromsizes} for options
+#' @param ... ignored
+#' @return a vector of length two, with the canonical boundary of pseudoautosomal region (PAR) as well as its shifted boundary
+#	in the strain CAST/EiJ
+#' @references
+#' 	White MW, Ikeda A, Payseur BA (2011) A pronounced evolutionary shift of the pseudoautosomal region boundary in house mice. Mammalian Genome 23: 455-466.
+#' 	doi:10.1007/s00335-012-9403-5
+#' @export
+pseudoautosomal_boundary <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38"), ...) {
+	.build <- match.arg(build)
+	if (.build %in% c("mm9","37","NCBIm37"))
+		return( c(166.41e6, 165980013) )
+	else if (.build %in% c("mm10","38","GRCm38"))
+		return( c(169969759, 169542082) )
+}
+
+#' @export
+#' @rdname pseudoautosomal_boundary
+PAR_mm9 <- function(...) pseudoautosomal_boundary("mm9")
+
+#' @export
+#' @rdname pseudoautosomal_boundary
+PAR_mm10 <- function(...) pseudoautosomal_boundary("mm10")
