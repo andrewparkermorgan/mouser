@@ -37,7 +37,7 @@ chromsizes_mm9 <- function(...) {
 #' @export
 chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38"), as.seqinfo = FALSE, ...) {
 
-	seqnames <- paste0("chr", c(1:19, "X","Y","M"))
+	seqnames <- chromnames()
 	is.circ <- c(rep(FALSE, 21),TRUE)
 	
 	.return.sizes <- function(nm, sz, circ, genome) {
@@ -52,11 +52,11 @@ chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38"), as.
 	
 	.build <- match.arg(build)
 	if (.build %in% c("mm10","38","GRCm38")) {
-		seqlengths <- c(197195432, 181748087, 159599783, 155630120, 152537259,
-					   149517037, 152524553, 131738871, 124076172, 129993255,
-					   121843856, 121257530, 120284312, 125194864, 103494974,
-					   98319150, 95272651, 90772031, 61342430,
-					   166650296, 91744698, 16299)
+		seqlengths <- c(195471971,182113224,160039680,156508116,151834684,
+						149736546,145441459,129401213,124595110,130694993,
+						122082543,120129022,120421639,124902244,104043685,
+						98207768,94987271,90702639,61431566,
+						171031299,91744698,16299)
 		if (.build %in% c("38","GRCm38")) {
 			seqnames <- gsub("^chr","", seqnames)
 			seqnames[22] <- "MT"
@@ -72,11 +72,11 @@ chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38"), as.
 			return( setNames(seqlengths, seqnames) )
 	}
 	else if (.build %in% c("mm9","37","NCBIm37")) {
-		seqlengths <- c(195471971,182113224,160039680,156508116,151834684,
-						149736546,145441459,129401213,124595110,130694993,
-						122082543,120129022,120421639,124902244,104043685,
-						98207768,94987271,90702639,61431566,
-						171031299,91744698,16299)
+		seqlengths <- c(197195432, 181748087, 159599783, 155630120, 152537259,
+						149517037, 152524553, 131738871, 124076172, 129993255,
+						121843856, 121257530, 120284312, 125194864, 103494974,
+						98319150, 95272651, 90772031, 61342430,
+						166650296, 91744698, 16299)
 		if (.build %in% c("37","NCBIm37")) {
 			seqnames <- gsub("^chr","", seqnames)
 			seqnames[22] <- "MT"
@@ -97,6 +97,14 @@ chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38"), as.
 	
 }
 
+#' Just return chromosome names.
+#' @param ... ignored
+#' @return character vector of chromosome names: chr1, ..., chrX, chrY, chrM
+#' @export
+chromnames <- function(...) {
+	seqnames <- paste0("chr", c(1:19, "X","Y","M"))
+}
+
 
 #' Return position of pseudoautosomal boundary on X chromosome
 #' @param build genome build: see \code{?chromsizes} for options
@@ -110,7 +118,7 @@ chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38"), as.
 pseudoautosomal_boundary <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38"), ...) {
 	.build <- match.arg(build)
 	if (.build %in% c("mm9","37","NCBIm37"))
-		return( c(166.41e6, 165980013) )
+		return( c(166407691, 165980013) )
 	else if (.build %in% c("mm10","38","GRCm38"))
 		return( c(169969759, 169542082) )
 }
@@ -122,3 +130,7 @@ PAR_mm9 <- function(...) pseudoautosomal_boundary("mm9")
 #' @export
 #' @rdname pseudoautosomal_boundary
 PAR_mm10 <- function(...) pseudoautosomal_boundary("mm10")
+
+scale_x_Mb <- function(name = "position (Mb)", ...) {
+	ggplot2::scale_x_continuous(name = name, labels = function(x) x/1e6, ...)
+}

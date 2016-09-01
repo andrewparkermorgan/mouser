@@ -12,7 +12,7 @@ mus_colors <- function(...) {
 			  "brown","grey",
 			  "grey40","cadetblue4","darkgoldenrod3","darkolivegreen",
 			  "darkorange4","burlywood4","aquamarine4",
-			  "black","black")
+			  "black","black","grey")
 	return( setNames(cols, taxa) )
 	
 }
@@ -28,7 +28,7 @@ mus_taxa <- function(...) {
 			 "molossinus","gentilulus",
 			 "spretus","spicilegus","cypriacus","macedonicus",
 			 "famulus","caroli","pahari",
-			 "cookii","fragilicauda"))
+			 "cookii","fragilicauda","lab"))
 }
 
 #' Canonical colour scheme for denoting male/female sex
@@ -42,6 +42,7 @@ sex_colors <- function(...) {
 	sexes <- c("f","m","F","M","female","male","FEMALE","MALE","XX","XY")
 	cols2 <- setNames( rep(cols, 5), sexes )
 	cols2 <- c( cols2, setNames( rev(cols), c("1","2") ) )
+	cols2 <- c( cols2, setNames(rep("grey60",2), c("XO","0")) )
 	return(cols2)
 }
 
