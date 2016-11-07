@@ -4,15 +4,20 @@
 \alias{palettes}
 \alias{scale_color_CC}
 \alias{scale_color_cc}
+\alias{scale_color_chromtype}
 \alias{scale_color_mus}
 \alias{scale_color_sex}
+\alias{scale_color_ychrom}
 \alias{scale_colour_cc}
 \alias{scale_colour_mus}
 \alias{scale_colour_sex}
+\alias{scale_colour_ychrom}
 \alias{scale_fill_CC}
 \alias{scale_fill_cc}
+\alias{scale_fill_chromtype}
 \alias{scale_fill_mus}
 \alias{scale_fill_sex}
+\alias{scale_fill_ychrom}
 \title{Color palettes related to mouse genetics for use with \code{ggplot2}.}
 \usage{
 scale_color_cc(..., misspell = FALSE)
@@ -22,6 +27,12 @@ scale_color_CC(...)
 scale_fill_cc(..., misspell = FALSE)
 
 scale_fill_CC(...)
+
+scale_color_ychrom(...)
+
+scale_colour_ychrom(...)
+
+scale_fill_ychrom(...)
 
 scale_color_mus(...)
 
@@ -36,6 +47,10 @@ scale_colour_cc(...)
 scale_colour_mus(...)
 
 scale_colour_sex(...)
+
+scale_color_chromtype(...)
+
+scale_fill_chromtype(...)
 }
 \arguments{
 \item{...}{passed through to underlying \code{ggplot2} functions}

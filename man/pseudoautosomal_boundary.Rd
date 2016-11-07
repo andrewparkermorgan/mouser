@@ -4,6 +4,8 @@
 \alias{PAR_mm10}
 \alias{PAR_mm9}
 \alias{pseudoautosomal_boundary}
+\alias{scale_x_Mb}
+\alias{scale_y_Mb}
 \title{Return position of pseudoautosomal boundary on X chromosome}
 \usage{
 pseudoautosomal_boundary(build = c("mm9", "mm10", "37", "38", "NCBIm37",
@@ -12,6 +14,10 @@ pseudoautosomal_boundary(build = c("mm9", "mm10", "37", "38", "NCBIm37",
 PAR_mm9(...)
 
 PAR_mm10(...)
+
+scale_x_Mb(name = "position (Mb)", ...)
+
+scale_y_Mb(name = "position (Mb)", ...)
 }
 \arguments{
 \item{build}{genome build: see \code{?chromsizes} for options}

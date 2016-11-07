@@ -8,7 +8,8 @@ Description: Defines some colour schemes and constants related to the house
 Depends:
     R (>= 3.0.0),
 Imports:
-    ggplot2
+    ggplot2,
+    scales
 Suggests:
 	GenomeInfoDb
 License: MIT + file LICENSE

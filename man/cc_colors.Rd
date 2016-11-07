@@ -5,11 +5,14 @@
 \alias{CC_COLOURS}
 \alias{cc_colors}
 \alias{cc_colours}
+\alias{ychrom_colors}
 \title{Canonical colour scheme for the founder strains of the Collaborative Cross and Diversity Outbred}
 \usage{
 cc_colors(...)
 
 CC_COLORS(...)
+
+ychrom_colors(...)
 
 cc_colours(...)
 
@@ -22,6 +25,8 @@ CC_COLOURS(...)
 a named, vector of hex colors, indexed by full strain names
 
 a named, vector of hex colors, indexed by one-letter strain codes
+
+Color palette for Y chromosome haplogroups in CC and DO
 }
 \description{
 Canonical colour scheme for the founder strains of the Collaborative Cross and Diversity Outbred

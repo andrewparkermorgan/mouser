@@ -46,6 +46,29 @@ sex_colors <- function(...) {
 	return(cols2)
 }
 
+#' Lighter colour scheme for denoting male/female sex
+#' @param ... ignored
+#' @return a named vector of colours
+#' @details several different notations for sex are covered here: "f"/"m", "F"/"M", "femalee"/"male", "XX"/"XY"
+#' @export
+sex_colors_lighter <- function(...) {
+	# colors are pink,blue
+	cols <- c("#f4c8df","#b5cded")
+	sexes <- c("f","m","F","M","female","male","FEMALE","MALE","XX","XY")
+	cols2 <- setNames( rep(cols, 5), sexes )
+	cols2 <- c( cols2, setNames( rev(cols), c("1","2") ) )
+	cols2 <- c( cols2, setNames(rep("grey80",2), c("XO","0")) )
+	return(cols2)
+}
+
+#' Canonical colour scheme for denoting autosomes vs X chromosome
+#' @param ... ignored
+#' @return a named vector of colours
+#' @export
+chrom_colors <- function(...) {
+	cols <- c("A" = "#377EB8", "X" = "#E41A1C")
+}
+
 #' Get the list of founder strains of the Collaborative Cross and Diversity Outbred
 #' @param misspell use the common misspelling (NZO/H*I*LtJ: I as in indigo) of the proper strain name for NZO
 #' @return a vector of full strain names, in proper nomenclature
@@ -97,6 +120,15 @@ CC_COLORS <- function(...) {
 	return( c(cols, cols2) )
 }
 
+#' @return Color palette for Y chromosome haplogroups in CC and DO
+#' @export
+#' @rdname cc_colors
+ychrom_colors <- function(...) {
+	cols <- unname(CC_COLORS()[1:8])
+	ycols <- c("ABCE" = cols[2], "DH" = cols[4], "F" = cols[6], "G" = cols[7])
+	return(ycols)
+}
+
 #' Color palettes related to mouse genetics for use with \code{ggplot2}.
 #' 
 #' @param ... passed through to underlying \code{ggplot2} functions
@@ -134,6 +166,24 @@ scale_fill_cc <- function(..., misspell = FALSE) {
 #' @rdname palettes
 scale_fill_CC <- function(...) {
 	ggplot2::scale_fill_manual(..., values = CC_COLORS())
+}
+
+#' @export
+#' @rdname palettes
+scale_color_ychrom <- function(...) {
+	ggplot2::scale_colour_manual(..., values = ychrom_colors())
+}
+
+#' @export
+#' @rdname palettes
+scale_colour_ychrom <- function(...) {
+	scale_color_ychrom(...)
+}
+
+#' @export
+#' @rdname palettes
+scale_fill_ychrom <- function(...) {
+	ggplot2::scale_fill_manual(..., values = ychrom_colors())
 }
 
 #' @export
@@ -184,3 +234,62 @@ scale_colour_mus <- function(...) scale_color_mus(...)
 #' @export
 #' @rdname palettes
 scale_colour_sex <- function(...) scale_color_sex(...)
+
+#' @export
+#' @rdname palettes
+scale_color_chromtype <- function(...) {
+	ggplot2::scale_color_manual(..., values = chrom_colors(), na.value = "grey")
+}
+
+#' @export
+#' @rdname palettes
+scale_fill_chromtype <- function(...) {
+	ggplot2::scale_fill_manual(..., values = chrom_colors(), na.value = "grey")
+}
+
+#' @export
+chrom_labeller <- function(labs, ...) {
+	lapply(labs, function(f) gsub("^chr", "", f))
+}
+
+#' The "classic" scheme of `ggplot2`, with axis-line issue fixed and nicer facet labels
+#' @export
+theme_classic2 <- function(...) {
+	ggplot2::theme_classic(...) +
+		ggplot2::theme(axis.line.x = ggplot2::element_line(),
+					   axis.line.y = ggplot2::element_line(),
+					   strip.text = ggplot2::element_text(face = "bold"),
+					   strip.background = ggplot2::element_blank())
+}
+
+#' Format axis labels as powers of 10
+#' @export
+scale_y_power10 <- function(...) {
+	scale_y_log10(...,
+			  breaks = trans_breaks("log10", function(x) 10^x),
+			  labels = trans_format("log10", scales::math_format(10^.x)))
+}
+#scientific_10 <- function(x) {
+#	parse(text=gsub("e", " %*% 10^", scales::scientific_format()(x)))
+#}
+
+#' Move the legend inside plotting area
+#' @export
+legend_inside <- function(where = c("bottomright","bottomleft","topleft","topright"), ...) {
+	
+	.where <- match.arg(where)
+	if (.where == "bottomleft") {
+		pos <- c(0,0)
+	} else if (.where == "bottomright") {
+		pos <- c(1,0)
+	} else if (.where == "topleft") {
+		pos <- c(0,1)
+	} else if (.where == "topright") {
+		pos <- c(1,1)
+	} else {
+		return(NULL)
+	}
+	
+	ggplot2::theme(legend.position = pos, legend.justification = pos)
+
+}

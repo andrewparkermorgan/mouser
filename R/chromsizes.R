@@ -35,9 +35,9 @@ chromsizes_mm9 <- function(...) {
 #' 	to a named vector but issue a warning.
 #' @seealso \code{\link[GenomeInfoDb]{Seqinfo}}
 #' @export
-chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38"), as.seqinfo = FALSE, ...) {
+chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38","cf3","hg19"), as.seqinfo = FALSE, ...) {
 
-	seqnames <- chromnames()
+	seqnames <- chromnames("mouse")
 	is.circ <- c(rep(FALSE, 21),TRUE)
 	
 	.return.sizes <- function(nm, sz, circ, genome) {
@@ -91,20 +91,92 @@ chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38"), as.
 		else
 			return( setNames(seqlengths, seqnames) )
 	}
+	else if (.build == "cf3") {
+		# cf3 lives in sysdata.rda
+		genome <- "cf3"
+		is.circ <- grepl("chrM", names(cf3))
+		if (as.seqinfo)
+			.return.sizes(names(cf3), cf3, is.circ, genome)
+		else
+			return(cf3)
+	}
+	else if (.build == "hg19") {
+		# hg19 lives in sysdata.rda
+		genome <- "hg19"
+		is.circ <- grepl("chrM", names(hg19))
+		if (as.seqinfo)
+			.return.sizes(names(hg19), hg19, is.circ, genome)
+		else
+			return(hg19)
+	}
 	else {
 		stop("Genome build not recognized.")
 	}
 	
 }
 
-#' Just return chromosome names.
+#' Chromosome lengths in cM.
 #' @param ... ignored
-#' @return character vector of chromosome names: chr1, ..., chrX, chrY, chrM
+#' @return vector of chromosome lenghs in cM
+#' @details Lengths are from Collaborative Cross G2:F1 recombination map.
 #' @export
-chromnames <- function(...) {
-	seqnames <- paste0("chr", c(1:19, "X","Y","M"))
+chromsizes_cM <- function(...) {
+	structure(c(98.5452, 103.9064, 82.6975, 88.6454, 90.2329, 79.0238, 
+				89.0678, 76.2476, 75.0692, 77.9816, 88.0028, 63.9015, 67.2537, 
+				66.4371, 59.0785, 57.8389, 61.2641, 59.4257, 56.923, 79.4368),
+				.Dim = 20L,
+				.Dimnames = list(
+					c("chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", 
+					  "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", 
+					  "chr15", "chr16", "chr17", "chr18", "chr19", "chrX")))
 }
 
+#' Just return chromosome names.
+#' @param species return chromosome names for this species (default is mouse)
+#' @param ... ignored
+#' @return character vector of chromosome names in the UCSC style: chr1, ..., chrX, chrY, chrM
+#' @export
+chromnames <- function(species = c("mouse","dog","human"), ...) {
+	.species <- match.arg(species)
+	if (.species == "mouse")
+		paste0("chr", c(1:19, "X","Y","M"))
+	else if (.species == "dog")
+		paste0("chr", c(1:38, "X","M")) #NB: dog Y chromosome not assembled yet
+	else if (.species == "human")
+		paste0("chr", c(1:22, "X","Y","M"))
+	else
+		stop("Species not recognized (yet).")
+}
+
+#' Create a factor whose levels are chromosome names.
+#' @param x a vector of values
+#' @param species return chromosome names for this species (default is mouse)
+#' @param ... ignored
+#' @return factor whose levels are chromosome names
+#' @export
+factor_chrom <- function(x, species = c("mouse","dog","human"), ...) {
+	
+	if (!any(grepl("^chr", x)))
+		x <- paste0("chr", x)
+	
+	ll <- chromnames(species)
+	factor( as.character(x), ll )
+}
+
+#' Classify chromosmes as X or autosome
+#' @param x a vector of values
+#' @param ... ignored
+#' @return factor whose levels are "X" (X chromosome) "A" (autosome)
+#' @details Chromsomes which are not X or autosome will be set to NA.
+#' @export
+factor_chromtype <- function(x, ...) {
+	
+	xx <- vector("character", length(x))
+	xx[ grepl("X", x) ] <- "X"
+	xx[ !grepl("[YM]", x) & !grepl("X", x) ] <- "A"
+	factor(xx, levels = c("A","X"))
+	
+}
 
 #' Return position of pseudoautosomal boundary on X chromosome
 #' @param build genome build: see \code{?chromsizes} for options
@@ -131,6 +203,14 @@ PAR_mm9 <- function(...) pseudoautosomal_boundary("mm9")
 #' @rdname pseudoautosomal_boundary
 PAR_mm10 <- function(...) pseudoautosomal_boundary("mm10")
 
+#' @export
+#' @rdname pseudoautosomal_boundary
 scale_x_Mb <- function(name = "position (Mb)", ...) {
 	ggplot2::scale_x_continuous(name = name, labels = function(x) x/1e6, ...)
+}
+
+#' @export
+#' @rdname pseudoautosomal_boundary
+scale_y_Mb <- function(name = "position (Mb)", ...) {
+	ggplot2::scale_y_continuous(name = name, labels = function(x) x/1e6, ...)
 }

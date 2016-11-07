@@ -4,8 +4,8 @@
 \alias{chromsizes}
 \title{Get chromosome lengths for a specific genome build.}
 \usage{
-chromsizes(build = c("mm9", "mm10", "37", "38", "NCBIm37", "GRCm38"),
-  as.seqinfo = FALSE, ...)
+chromsizes(build = c("mm9", "mm10", "37", "38", "NCBIm37", "GRCm38", "cf3",
+  "hg19"), as.seqinfo = FALSE, ...)
 }
 \arguments{
 \item{build}{name of a genome build: one of \code{"mm9", "mm10", "37", "38"}}
