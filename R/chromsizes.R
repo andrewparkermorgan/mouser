@@ -165,17 +165,58 @@ factor_chrom <- function(x, species = c("mouse","dog","human"), ...) {
 
 #' Classify chromosmes as X or autosome
 #' @param x a vector of values
+#' @param include.Y logical; if \code{TRUE}, treat Y chromosome as separate class
 #' @param ... ignored
 #' @return factor whose levels are "X" (X chromosome) "A" (autosome)
 #' @details Chromsomes which are not X or autosome will be set to NA.
 #' @export
-factor_chromtype <- function(x, ...) {
+factor_chromtype <- function(x, include.Y = FALSE, ...) {
+	
+	groups <- c("A","X")
+	if (include.Y)
+		groups <- c(groups, "Y")
 	
 	xx <- vector("character", length(x))
 	xx[ grepl("X", x) ] <- "X"
 	xx[ !grepl("[YM]", x) & !grepl("X", x) ] <- "A"
-	factor(xx, levels = c("A","X"))
+	if (include.Y)
+		xx[ grepl("Y", x) ] <- "Y"
+	xx[ grepl("JH", x) | grepl("GL", x) | grepl("PATCH", x) | grepl("MG", x) ] <- NA
+	xx[ is.na(x) ] <- NA
+	factor(xx, levels = groups)
 	
+}
+
+#' Classify sex in systematic way
+#' @param x a vector of sexes, encoded in any of the acceptable ways (see Details)
+#' @param ... ignored
+#' @return a factor with one level for each sex
+#' @export
+factor_sex <- function(x, ...) {
+	x <- as.character(x)
+	if (all(c("F","M") %in% x)) {
+		factor(x, c("F","M"))
+	}
+	else if (all(c("f","m") %in% x)) {
+		factor(x, c("f","m"))
+	}
+	else if (all(c("female","male") %in% tolower(x))) {
+		x <- tolower(x)
+		factor(x, c("female","male"))
+	}
+	else if (all(c("XX","XY") %in% x)) {
+		factor(x, c("XX","XY"))
+		if (all(c("XX","XY","XO") %in% x)) {
+			factor(x, c("XX","XY","XO"))
+		}
+	}
+	else if (all(c("1","2") %in% x)) {
+		factor(x, levels = c("2","1","0"), labels = c("female","male","unknown"))
+	}
+	else {
+		warning("Can't understand sex encoding; values returned unchanged.")
+		return(x)
+	}
 }
 
 #' Return position of pseudoautosomal boundary on X chromosome

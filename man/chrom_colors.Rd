@@ -4,9 +4,11 @@
 \alias{chrom_colors}
 \title{Canonical colour scheme for denoting autosomes vs X chromosome}
 \usage{
-chrom_colors(...)
+chrom_colors(include.Y = FALSE, ...)
 }
 \arguments{
+\item{include.Y}{logical; if \code{TRUE}, give Y chrom its own color}
+
 \item{...}{ignored}
 }
 \value{

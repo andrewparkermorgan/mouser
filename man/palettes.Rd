@@ -48,9 +48,9 @@ scale_colour_mus(...)
 
 scale_colour_sex(...)
 
-scale_color_chromtype(...)
+scale_color_chromtype(..., include.Y = FALSE)
 
-scale_fill_chromtype(...)
+scale_fill_chromtype(..., include.Y = FALSE)
 }
 \arguments{
 \item{...}{passed through to underlying \code{ggplot2} functions}

@@ -4,10 +4,12 @@
 \alias{factor_chromtype}
 \title{Classify chromosmes as X or autosome}
 \usage{
-factor_chromtype(x, ...)
+factor_chromtype(x, include.Y = FALSE, ...)
 }
 \arguments{
 \item{x}{a vector of values}
+
+\item{include.Y}{logical; if \code{TRUE}, treat Y chromosome as separate class}
 
 \item{...}{ignored}
 }

@@ -62,11 +62,18 @@ sex_colors_lighter <- function(...) {
 }
 
 #' Canonical colour scheme for denoting autosomes vs X chromosome
+#' @param include.Y logical; if \code{TRUE}, give Y chrom its own color
 #' @param ... ignored
 #' @return a named vector of colours
 #' @export
-chrom_colors <- function(...) {
-	cols <- c("A" = "#377EB8", "X" = "#E41A1C")
+chrom_colors <- function(include.Y = FALSE, ...) {
+	
+	if (include.Y)
+		cols <- c("A" = "black", "X" = unname(sex_colors()["female"]), "Y" = unname(sex_colors()["male"]))
+	else
+		cols <- c("A" = "#377EB8", "X" = "#E41A1C")
+	
+	return(cols)
 }
 
 #' Get the list of founder strains of the Collaborative Cross and Diversity Outbred
@@ -96,6 +103,22 @@ cc_strains <- function(misspell = FALSE, ...) {
 #' @rdname cc_strains
 CC_STRAINS <- function(...) {
 	return( setNames( cc_strains(), LETTERS[1:8] ) )
+}
+
+#' Return CC diplotypes in canonical order
+#' @param strains which strains to include in diplotype states; default is all 8
+#' @param phased logical; if FALSE (the default), return unordered combinations; otherwise respect order
+#' @param ... ignored
+#' @return a character vector of diplotype states as 2-letter codes
+#' @export
+cc_diplotypes <- function(strains = LETTERS[1:8], phased = FALSE, ...) {
+	hom <- paste0(strains, strains)
+	het <- apply(combn(strains, 2), 2, paste0, collapse = "")
+	if (phased) {
+		x <- outer(strains, strains, paste0)
+		het <- sort(c(as.vector(x[ upper.tri(x) ]), as.vector(x[ lower.tri(x) ])))
+	}
+	return( c(hom, het) )
 }
 
 #' Canonical colour scheme for the founder strains of the Collaborative Cross and Diversity Outbred
@@ -146,32 +169,32 @@ NULL
 #' @param misspell logical; if \code{TRUE}, use common misspelling for name of strain 'NZO'
 #' @export
 #' @rdname palettes
-scale_color_cc <- function(..., misspell = FALSE) {
-	ggplot2::scale_colour_manual(..., values = cc_colors(misspell))
+scale_color_cc <- function(..., na.value = "grey", misspell = FALSE) {
+	ggplot2::scale_colour_manual(..., values = cc_colors(misspell), na.value = na.value)
 }
 
 #' @export
 #' @rdname palettes
-scale_color_CC <- function(...) {
-	ggplot2::scale_colour_manual(..., values = CC_COLORS())
+scale_color_CC <- function(..., na.value = "grey") {
+	ggplot2::scale_colour_manual(..., values = CC_COLORS(), na.value = na.value)
 }
 
 #' @export
 #' @rdname palettes
-scale_fill_cc <- function(..., misspell = FALSE) {
-	ggplot2::scale_fill_manual(..., values = cc_colors(misspell))
+scale_fill_cc <- function(..., misspell = FALSE, na.value = "grey") {
+	ggplot2::scale_fill_manual(..., values = cc_colors(misspell), na.value = na.value)
 }
 
 #' @export
 #' @rdname palettes
-scale_fill_CC <- function(...) {
-	ggplot2::scale_fill_manual(..., values = CC_COLORS())
+scale_fill_CC <- function(..., na.value = "grey") {
+	ggplot2::scale_fill_manual(..., values = CC_COLORS(), na.value = na.value)
 }
 
 #' @export
 #' @rdname palettes
-scale_color_ychrom <- function(...) {
-	ggplot2::scale_colour_manual(..., values = ychrom_colors())
+scale_color_ychrom <- function(..., na.value = "grey") {
+	ggplot2::scale_colour_manual(..., values = ychrom_colors(), na.value = na.value)
 }
 
 #' @export
@@ -182,32 +205,32 @@ scale_colour_ychrom <- function(...) {
 
 #' @export
 #' @rdname palettes
-scale_fill_ychrom <- function(...) {
-	ggplot2::scale_fill_manual(..., values = ychrom_colors())
+scale_fill_ychrom <- function(..., na.value = "grey") {
+	ggplot2::scale_fill_manual(..., values = ychrom_colors(), na.value = na.value)
 }
 
 #' @export
 #' @rdname palettes
-scale_color_mus <- function(...) {
-	ggplot2::scale_colour_manual(..., values = mus_colors())
+scale_color_mus <- function(..., na.value = "grey") {
+	ggplot2::scale_colour_manual(..., values = mus_colors(), na.value = na.value)
 }
 
 #' @export
 #' @rdname palettes
-scale_fill_mus <- function(...) {
-	ggplot2::scale_fill_manual(..., values = mus_colors())
+scale_fill_mus <- function(..., na.value = "grey") {
+	ggplot2::scale_fill_manual(..., values = mus_colors(), na.value = na.value)
 }
 
 #' @export
 #' @rdname palettes
-scale_color_sex <- function(...) {
-	ggplot2::scale_color_manual(..., values = sex_colors())
+scale_color_sex <- function(..., na.value = "grey") {
+	ggplot2::scale_color_manual(..., values = sex_colors(), na.value = na.value)
 }
 
 #' @export
 #' @rdname palettes
-scale_fill_sex <- function(...) {
-	ggplot2::scale_fill_manual(..., values = sex_colors())
+scale_fill_sex <- function(..., na.value = "grey") {
+	ggplot2::scale_fill_manual(..., values = sex_colors(), na.value = na.value)
 }
 
 # aliases for UK-style spellings
@@ -237,14 +260,18 @@ scale_colour_sex <- function(...) scale_color_sex(...)
 
 #' @export
 #' @rdname palettes
-scale_color_chromtype <- function(...) {
-	ggplot2::scale_color_manual(..., values = chrom_colors(), na.value = "grey")
+scale_color_chromtype <- function(..., include.Y = FALSE) {
+	ggplot2::scale_color_manual(..., values = chrom_colors(include.Y), na.value = "grey")
 }
 
 #' @export
 #' @rdname palettes
-scale_fill_chromtype <- function(...) {
-	ggplot2::scale_fill_manual(..., values = chrom_colors(), na.value = "grey")
+scale_colour_chromtype <- function(...) scale_color_chromtype(...)
+
+#' @export
+#' @rdname palettes
+scale_fill_chromtype <- function(..., include.Y = FALSE) {
+	ggplot2::scale_fill_manual(..., values = chrom_colors(include.Y), na.value = "grey")
 }
 
 #' @export
@@ -259,7 +286,10 @@ theme_classic2 <- function(...) {
 		ggplot2::theme(axis.line.x = ggplot2::element_line(),
 					   axis.line.y = ggplot2::element_line(),
 					   strip.text = ggplot2::element_text(face = "bold"),
-					   strip.background = ggplot2::element_blank())
+					   strip.background = ggplot2::element_blank(),
+					   legend.background = ggplot2::element_blank(),
+					   legend.key.size = grid::unit(0.9, "lines"),
+					   plot.title = ggplot2::element_text(hjust = 0.5))
 }
 
 #' Format axis labels as powers of 10
@@ -280,16 +310,21 @@ legend_inside <- function(where = c("bottomright","bottomleft","topleft","toprig
 	.where <- match.arg(where)
 	if (.where == "bottomleft") {
 		pos <- c(0,0)
+		bjust <- "left"
 	} else if (.where == "bottomright") {
 		pos <- c(1,0)
+		bjust <- "left"
 	} else if (.where == "topleft") {
 		pos <- c(0,1)
+		bjust <- "left"
 	} else if (.where == "topright") {
 		pos <- c(1,1)
+		bjust <- "left"
 	} else {
 		return(NULL)
 	}
 	
-	ggplot2::theme(legend.position = pos, legend.justification = pos)
+	ggplot2::theme(legend.position = pos, legend.justification = pos,
+				   legend.box.just = bjust)
 
 }
