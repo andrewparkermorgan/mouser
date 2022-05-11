@@ -7,13 +7,18 @@
 #' @export
 mus_colors <- function(...) {
 	
+	args <- unlist(list(...))
 	taxa <- mus_taxa()
 	cols <- c("#377eb8","#e41a1c","#4daf4a","#e41a1c", "#377eb8","#4daf4a",
-			  "brown","grey",
-			  "grey40","cadetblue4","darkgoldenrod3","darkolivegreen",
+			  "brown","grey40","grey40",
+			  "khaki4","cadetblue4","darkgoldenrod3","darkolivegreen",
 			  "darkorange4","burlywood4","aquamarine4",
 			  "black","black","grey")
-	return( setNames(cols, taxa) )
+	thecols <- setNames(cols, taxa)
+	if (is.null(args))
+		return(thecols)
+	else
+		return(thecols[ intersect(args, names(thecols)) ])
 	
 }
 
@@ -25,10 +30,54 @@ mus_colors <- function(...) {
 #' @export
 mus_taxa <- function(...) {
 	return(c("dom","mus","cas","musculus","domesticus","castaneus",
-			 "molossinus","gentilulus",
+			 "molossinus","gentilulus","gen",
 			 "spretus","spicilegus","cypriacus","macedonicus",
 			 "famulus","caroli","pahari",
 			 "cookii","fragilicauda","lab"))
+}
+
+#' Get a list of taxa in the genus Mus, with genus-species-subspecies names
+#' @param ... ignored
+#' @param gentilulus_undefined rename 'gentilulus' to 'undefined', given its uncertain taxonomic status (default TRUE)
+#' @return a vector of taxa names or abbreviations; these are the last piece in the Linnean binomial (for full species)
+#' 	or trinomial (for subspecies) nomenclature
+#' @details For the three house mouse subspecies, abbreviations ("dom","mus","cas") are also included.
+#' @export
+mus_taxa_formal <- function(..., gentilulus_undefined = TRUE) {
+	
+	rez <- c("dom"=  "M. m. domesticus",
+			 "mus" = "M. m. musculus",
+			 "cas" = "M. m. castaneus",
+			 "gen" = "M. m. gentilulus",
+			 "gentilulus" = "M. m. gentilulus",
+			 "molossinus" = "M. m. molossinus",
+			 "gentilulus" = "M. m. gentilulus",
+			 "spretus" = "M. spretus",
+			 "spicilegus" = "M. spicilegus",
+			 "cypriacus" = "M. cypriacus",
+			 "macedonicus" = "M. macedonicus",
+			 "famulus" = "M. famulus",
+			 "caroli" = "M. caroli")
+	if (gentilulus_undefined) {
+		rez["gen"] <- "M. m. undefined"
+		rez["gentilulus"] <- "M. m. undefined"
+	}
+	return(rez)
+	
+}
+
+#' Test if the listed taxa are outgroups with respect to Mus musculus
+#' @param x a vector of values to test (will be coerced to character)
+#' @return a logical vector
+#' @export
+is_outgroup <- function(x, ..) {
+	x <- as.character(x)
+	x %in% setdiff(mus_taxa(), c("lab","classical",mus_taxa()[1:7]))
+}
+
+factor_mus <- function(x, ...) {
+	x <- as.character(x)
+	factor(x, levels = mus_taxa())
 }
 
 #' Canonical colour scheme for denoting male/female sex
@@ -43,6 +92,18 @@ sex_colors <- function(...) {
 	cols2 <- setNames( rep(cols, 5), sexes )
 	cols2 <- c( cols2, setNames( rev(cols), c("1","2") ) )
 	cols2 <- c( cols2, setNames(rep("grey60",2), c("XO","0")) )
+	return(cols2)
+}
+
+#' @export
+sex_shapes <- function(...) {
+	# shapes are circle=F, square=M
+	cols <- c(19,15)
+	sexes <- c("f","m","F","M","female","male","FEMALE","MALE","XX","XY")
+	cols2 <- setNames( rep(cols, 5), sexes )
+	cols2 <- c( cols2, setNames( rev(cols), c("1","2") ) )
+	# unknown or XO is diamond
+	cols2 <- c( cols2, setNames(rep(18,2), c("XO","0")) )
 	return(cols2)
 }
 
@@ -152,6 +213,12 @@ ychrom_colors <- function(...) {
 	return(ycols)
 }
 
+alt_chrom_colors <- function(chroms = chromnames()) {
+	setNames( rep_len(c("grey30","grey65"), length(chroms)), chroms )
+}
+
+alt_chrom_colours <- function(...) alt_chrom_colors(...)
+
 #' Color palettes related to mouse genetics for use with \code{ggplot2}.
 #' 
 #' @param ... passed through to underlying \code{ggplot2} functions
@@ -177,6 +244,15 @@ scale_color_cc <- function(..., na.value = "grey", misspell = FALSE) {
 #' @rdname palettes
 scale_color_CC <- function(..., na.value = "grey") {
 	ggplot2::scale_colour_manual(..., values = CC_COLORS(), na.value = na.value)
+}
+
+#' @export
+#' @rdname palettes
+scale_color_CC_withf1 <- function(..., na.value = "grey90") {
+	cols <- CC_COLORS()[9:16]
+	labs <- cc_diplotypes()
+	cols <- unname( c(cols, rep("grey70", 28)) )
+	ggplot2::scale_colour_manual(..., values = cols, labels = labs, na.value = na.value)
 }
 
 #' @export
@@ -223,14 +299,22 @@ scale_fill_mus <- function(..., na.value = "grey") {
 
 #' @export
 #' @rdname palettes
-scale_color_sex <- function(..., na.value = "grey") {
-	ggplot2::scale_color_manual(..., values = sex_colors(), na.value = na.value)
+scale_color_sex <- function(..., na.value = "grey", lighter = FALSE) {
+	colfn <- if (!lighter) sex_colors else sex_colors_lighter
+	ggplot2::scale_color_manual(..., values = colfn(), na.value = na.value)
 }
 
 #' @export
 #' @rdname palettes
-scale_fill_sex <- function(..., na.value = "grey") {
-	ggplot2::scale_fill_manual(..., values = sex_colors(), na.value = na.value)
+scale_fill_sex <- function(..., na.value = "grey", lighter = FALSE) {
+	colfn <- if (!lighter) sex_colors else sex_colors_lighter
+	ggplot2::scale_fill_manual(..., values = colfn(), na.value = na.value)
+}
+
+#' @export
+#' @rdname palettes
+scale_shape_sex <- function(..., na.value = 18) {
+	ggplot2::scale_shape_manual(..., values = sex_shapes(), na.value = na.value)
 }
 
 # aliases for UK-style spellings
@@ -279,6 +363,39 @@ chrom_labeller <- function(labs, ...) {
 	lapply(labs, function(f) gsub("^chr", "", f))
 }
 
+#' @export
+taxon_labeller <- function(x, full_names = FALSE, gentilulus_undefined = TRUE) {
+	
+	if (full_names) {
+		mus_names <- c("M. m. domesticus","M. m. musculus","M. m. castaneus",
+					   "M. m. gentilulus","M. m. molossinus")
+		if (gentilulus_undefined)
+			mus_names[4] <- "M. m. undefined"
+	}
+	else {
+		mus_names <- c("domesticus","musculus","castaneus","gentilulus","molossinus")
+		if (gentilulus_undefined)
+			mus_names[4] <- "undefined"
+	}
+	
+	renamer <- c( setNames( mus_names, c("dom","mus","cas","gen","mol") ),
+				 c("spretus" = "M. spretus", "spicilegus" = "M. spicilegus", "caroli" = "M. caroli") )
+	
+	.do_rename <- function(n) {
+		n <- as.character(n)
+		nn <- renamer[ n ]
+		nas <- is.na(nn)
+		nn[ nas ] <- n[ nas ]
+		return(nn)
+	}
+	
+	lapply(x, .do_rename)
+	
+}
+
+#' @export
+taxon_labeller_full <- function(x) taxon_labeller(x, TRUE)
+
 #' The "classic" scheme of `ggplot2`, with axis-line issue fixed and nicer facet labels
 #' @export
 theme_classic2 <- function(...) {
@@ -292,12 +409,24 @@ theme_classic2 <- function(...) {
 					   plot.title = ggplot2::element_text(hjust = 0.5))
 }
 
+theme_gbrowse <- function(...) {
+	theme_classic2(...) + ggplot2::theme(axis.line.y =ggplot2:: element_blank())
+}
+
 #' Format axis labels as powers of 10
 #' @export
 scale_y_power10 <- function(...) {
 	scale_y_log10(...,
-			  breaks = trans_breaks("log10", function(x) 10^x),
-			  labels = trans_format("log10", scales::math_format(10^.x)))
+			  breaks = scales::trans_breaks("log10", function(x) 10^x),
+			  labels = scales::trans_format("log10", scales::math_format(10^.x)))
+}
+
+#' Format axis labels as powers of 10
+#' @export
+scale_x_power10 <- function(...) {
+	scale_x_log10(...,
+				  breaks = scales::trans_breaks("log10", function(x) 10^x),
+				  labels = scales::trans_format("log10", scales::math_format(10^.x)))
 }
 #scientific_10 <- function(x) {
 #	parse(text=gsub("e", " %*% 10^", scales::scientific_format()(x)))
@@ -327,4 +456,91 @@ legend_inside <- function(where = c("bottomright","bottomleft","topleft","toprig
 	ggplot2::theme(legend.position = pos, legend.justification = pos,
 				   legend.box.just = bjust)
 
+}
+
+#' Lay chromosomes out end-to-end and re-calculate position of genomic intervals/points
+#' @export
+linearize_genome <- function(df, chrlen = NULL, space = 7, ...) {
+	
+	if (is.null(chrlen)) {
+		chrlen <- chromsizes_mm10()
+		df$chr <- factor_chrom(df$chr)
+	}
+	else {
+		df$chr <- factor(df$chr, names(chrlen))
+	}
+	
+	#chrom <- as.character(df$chr)
+	adj <- c(0, cumsum(chrlen/1e6+space))
+	for (col in c("start","end","pos")) {
+		if (all(col %in% colnames(df))) {
+			newcol <- paste0(".", col)
+			df[ ,newcol ] <- df[ ,col ]/1e6 + adj[ as.numeric(df$chr) ]
+		}
+	}
+	
+	altcolor <- setNames( rep_len(c(0,1), nlevels(df$chr)), levels(df$chr) )
+	df$.colour <- factor(altcolor[ as.character(df$chr) ])
+	return(df)
+	
+}
+
+#' Draw x-axis for concatenated chromosomes
+#' @export
+scale_x_linearized_genome <- function(..., chrlen = NULL, space = 7) {
+	
+	if (is.null(chrlen))
+		chrlen <- chromsizes_mm10()
+	adj <- c(0, cumsum(chrlen/1e6+space))
+	ticks <- adj[ -length(adj) ] + diff(adj)/2
+	xlim <- c(0, max(adj)+0.05*max(adj))
+	ggplot2::scale_x_continuous(..., limits = xlim, breaks = ticks,
+					   labels = gsub("^chr", "", names(chrlen)))
+	
+}
+
+#' @export
+par_boundary_refline <- function(..., lty = "dashed", colour = "red", idx = 1) {
+	ggplot2::geom_vline(xintercept = pseudoautosomal_boundary("mm10")[idx], lty = lty, colour = colour, ...)
+}
+
+#' @export
+scale_x_par <- function(..., distal = 170.02e6) {
+	scale_x_Mb(limits = c(pseudoautosomal_boundary("mm10")[2], distal), ...)
+}
+
+#' @export
+scale_color_genocall <- function(..., na.value = "grey") {
+	cols <- RColorBrewer::brewer.pal(11, "Spectral")[ c(1,11,10) ]
+	names(cols) <- c("0","1","2")
+	labs <- function(f) {
+		f[ is.na(f) ] <- 4
+		newlab <- c("HOM_A1","HET", "HOM_A2","NA")[ as.integer(f)+1 ]
+		return(newlab)
+	}
+	ggplot2::scale_color_manual(..., values = cols, labels = labs, na.value = na.value)
+}
+
+#' @export
+scale_fill_genocall <- function(..., na.value = "grey") {
+	cols <- RColorBrewer::brewer.pal(11, "Spectral")[ c(1,11,10) ]
+	names(cols) <- c("0","1","2")
+	labs <- function(f) {
+		f[ is.na(f) ] <- 4
+		newlab <- c("HOM_A1","HET", "HOM_A2","NA")[ as.integer(f)+1 ]
+		return(newlab)
+	}
+	ggplot2::scale_fill_manual(..., values = cols, labels = labs, na.value = na.value)
+}
+
+#' @export
+color_to_hexcode <- function(col, ...) {
+	
+	m <- col2rgb(col) 
+	m <- t(m)
+	hex <- rgb(m, maxColorValue = 255)
+	names(hex) <- names(col)
+	hex[ is.na(col) ] <- NA
+	return(hex)
+	
 }

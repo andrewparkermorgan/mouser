@@ -1,6 +1,11 @@
 # chromsizes.R
 # chromosome sizes, in various genome builds and with different flavours of chromosome names
 
+#' @export
+.selfnames <- function(x, ...) {
+	setNames(x, x)
+}
+
 #' Shortcut to chromosome lengths for genome build mm10.
 #' @param ... passed through to \code{chromsizes()}
 #' @return either a named vector of chromosome lengths or a \code{Seqinfo} object; see \code{?chromsizes}
@@ -35,7 +40,7 @@ chromsizes_mm9 <- function(...) {
 #' 	to a named vector but issue a warning.
 #' @seealso \code{\link[GenomeInfoDb]{Seqinfo}}
 #' @export
-chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38","cf3","hg19"), as.seqinfo = FALSE, ...) {
+chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38","cf3","hg19"), as.seqinfo = FALSE, correct_offset = FALSE, ...) {
 
 	seqnames <- chromnames("mouse")
 	is.circ <- c(rep(FALSE, 21),TRUE)
@@ -65,7 +70,11 @@ chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38","cf3"
 		else {
 			genome <- "mm10"
 		}
-			
+		
+		if (correct_offset) {
+			seqlengths <- seqlengths - c(rep(3e6, 20), 0, 0)
+		}
+		
 		if (as.seqinfo)
 			.return.sizes(seqnames, seqlengths, is.circ, genome)
 		else
@@ -84,6 +93,10 @@ chromsizes <- function(build = c("mm9","mm10","37","38","NCBIm37","GRCm38","cf3"
 		}
 		else {
 			genome <- "mm9"
+		}
+		
+		if (correct_offset) {
+			seqlengths <- seqlengths - c(rep(3e6, 20), 0, 0)
 		}
 		
 		if (as.seqinfo)
@@ -156,11 +169,44 @@ chromnames <- function(species = c("mouse","dog","human"), ...) {
 #' @export
 factor_chrom <- function(x, species = c("mouse","dog","human"), ...) {
 	
-	if (!any(grepl("^chr", x)))
-		x <- paste0("chr", x)
-	
+	species <- match.arg(species)
 	ll <- chromnames(species)
-	factor( as.character(x), ll )
+	
+	if (!is.factor(x) && is.numeric(x)) {
+		# assume chromosomes encoded numerically, as 1-20
+		if (max(x) > 22 && species == "mouse") {
+			# fix PLINK-style chromosome numbers
+			x[ x == 23 ] <- 20 # X
+			x[ x == 24 ] <- 21 # Y
+			x[ x == 25 ] <- 20 # PAR; on X in mouse
+			x[ x == 26 ] <- 22 # M
+		}
+		rez <- factor( ll[x], ll )
+	}
+	else {
+		# assume chromosomes are character encoded
+		if (!any(grepl("^chr", x))) {
+			x[ grepl("^MT", x) ] <- "M"
+			x <- paste0("chr", x)
+		}
+		rez <- factor( as.character(x), ll )
+	}
+	
+	attr(rez,"is_chrom") <- TRUE
+	attr(rez, "species") <- species
+	return(rez)
+	
+}
+
+#' Test if a chromosome identifier does or does not represent an autosome
+#' @export
+is_autosome <- function(x, ...) {
+	
+	if (is.null(attr(x, "is_chrom")))
+		x <- factor_chrom(x, ...)
+	
+	return( !grepl("[XYMWZ]", x) )
+	
 }
 
 #' Classify chromosmes as X or autosome
@@ -170,17 +216,21 @@ factor_chrom <- function(x, species = c("mouse","dog","human"), ...) {
 #' @return factor whose levels are "X" (X chromosome) "A" (autosome)
 #' @details Chromsomes which are not X or autosome will be set to NA.
 #' @export
-factor_chromtype <- function(x, include.Y = FALSE, ...) {
+factor_chromtype <- function(x, include_Y = FALSE, include_M = FALSE, ...) {
 	
 	groups <- c("A","X")
-	if (include.Y)
+	if (include_Y)
 		groups <- c(groups, "Y")
+	if (include_M)
+		groups <- c(groups, "M")
 	
 	xx <- vector("character", length(x))
 	xx[ grepl("X", x) ] <- "X"
 	xx[ !grepl("[YM]", x) & !grepl("X", x) ] <- "A"
-	if (include.Y)
+	if (include_Y)
 		xx[ grepl("Y", x) ] <- "Y"
+	if (include_M)
+		xx[ grepl("MT*$", x) ] <- "M"
 	xx[ grepl("JH", x) | grepl("GL", x) | grepl("PATCH", x) | grepl("MG", x) ] <- NA
 	xx[ is.na(x) ] <- NA
 	factor(xx, levels = groups)
@@ -192,31 +242,54 @@ factor_chromtype <- function(x, include.Y = FALSE, ...) {
 #' @param ... ignored
 #' @return a factor with one level for each sex
 #' @export
-factor_sex <- function(x, ...) {
+factor_sex <- function(x, as_karyotype = FALSE, with_XO = FALSE, format = NULL, ...) {
 	x <- as.character(x)
 	if (all(c("F","M") %in% x)) {
-		factor(x, c("F","M"))
+		rez <- factor(x, c("F","M"))
 	}
 	else if (all(c("f","m") %in% x)) {
-		factor(x, c("f","m"))
+		rez <- factor(x, c("f","m"))
 	}
 	else if (all(c("female","male") %in% tolower(x))) {
 		x <- tolower(x)
-		factor(x, c("female","male"))
+		rez <- factor(x, c("female","male"))
 	}
 	else if (all(c("XX","XY") %in% x)) {
-		factor(x, c("XX","XY"))
+		rez <- factor(x, c("XX","XY"))
 		if (all(c("XX","XY","XO") %in% x)) {
-			factor(x, c("XX","XY","XO"))
+			rez <- factor(x, c("XX","XY","XO"))
 		}
 	}
 	else if (all(c("1","2") %in% x)) {
-		factor(x, levels = c("2","1","0"), labels = c("female","male","unknown"))
+		if (!as_karyotype) {
+			rez <- factor(x, levels = c("2","1","0"), labels = c("female","male","unknown"))
+		}
+		else {
+			if (with_XO)
+				rez <- factor(x, levels = c("2","1","0"), labels = c("XX","XY","XO"))
+			else
+				rez <- factor(x, levels = c("2","1","0"), labels = c("XX","XY","unknown"))
+		}
 	}
 	else {
 		warning("Can't understand sex encoding; values returned unchanged.")
 		return(x)
 	}
+	
+	if (!is.null(format)) {
+		if (format == "MF" || format == "FM") {
+			newl <- c("F","M","U")
+		}
+		else if (format == "XY") {
+			newl <- c("XX","XY","XO")
+		}
+		else if (format == "mf" || format == "fm") {
+			newl <- c("female","male","unknown")
+		}
+		levels(rez) <- newl[ 1:nlevels(rez) ]
+	}
+	
+	return(rez)
 }
 
 #' Return position of pseudoautosomal boundary on X chromosome

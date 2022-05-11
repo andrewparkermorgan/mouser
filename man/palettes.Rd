@@ -9,6 +9,7 @@
 \alias{scale_color_sex}
 \alias{scale_color_ychrom}
 \alias{scale_colour_cc}
+\alias{scale_colour_chromtype}
 \alias{scale_colour_mus}
 \alias{scale_colour_sex}
 \alias{scale_colour_ychrom}
@@ -18,29 +19,32 @@
 \alias{scale_fill_mus}
 \alias{scale_fill_sex}
 \alias{scale_fill_ychrom}
+\alias{scale_shape_sex}
 \title{Color palettes related to mouse genetics for use with \code{ggplot2}.}
 \usage{
-scale_color_cc(..., misspell = FALSE)
+scale_color_cc(..., na.value = "grey", misspell = FALSE)
 
-scale_color_CC(...)
+scale_color_CC(..., na.value = "grey")
 
-scale_fill_cc(..., misspell = FALSE)
+scale_fill_cc(..., misspell = FALSE, na.value = "grey")
 
-scale_fill_CC(...)
+scale_fill_CC(..., na.value = "grey")
 
-scale_color_ychrom(...)
+scale_color_ychrom(..., na.value = "grey")
 
 scale_colour_ychrom(...)
 
-scale_fill_ychrom(...)
+scale_fill_ychrom(..., na.value = "grey")
 
-scale_color_mus(...)
+scale_color_mus(..., na.value = "grey")
 
-scale_fill_mus(...)
+scale_fill_mus(..., na.value = "grey")
 
-scale_color_sex(...)
+scale_color_sex(..., na.value = "grey", lighter = FALSE)
 
-scale_fill_sex(...)
+scale_fill_sex(..., na.value = "grey", lighter = FALSE)
+
+scale_shape_sex(..., na.value = 18)
 
 scale_colour_cc(...)
 
@@ -49,6 +53,8 @@ scale_colour_mus(...)
 scale_colour_sex(...)
 
 scale_color_chromtype(..., include.Y = FALSE)
+
+scale_colour_chromtype(...)
 
 scale_fill_chromtype(..., include.Y = FALSE)
 }
